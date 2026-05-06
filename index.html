@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JobShield AI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-slate-50 font-sans min-h-screen p-4 md:p-10">
+
+    <div class="max-w-5xl mx-auto">
+        <!-- Header -->
+        <header class="bg-white p-6 rounded-3xl shadow-sm border mb-8 flex justify-between items-center">
+            <h1 class="text-2xl font-black text-slate-800"><i class="fa-solid fa-shield-halved text-indigo-600 mr-2"></i>JobShield <span class="text-indigo-600">AI</span></h1>
+            <span class="text-[10px] font-bold text-slate-400 border px-3 py-1 rounded-full">PYTHON FLASK MVP</span>
+        </header>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <!-- Left: Input -->
+            <div class="bg-white p-8 rounded-[2rem] border shadow-sm">
+                <h2 class="font-bold text-slate-800 mb-4"><i class="fa-solid fa-file-lines text-indigo-600 mr-2"></i>Paste Job Text</h2>
+                <textarea id="jobInput" class="w-full h-80 p-5 bg-slate-50 border rounded-2xl outline-none focus:ring-4 focus:ring-indigo-100 transition-all text-sm" placeholder="Paste the job description here..."></textarea>
+                <button onclick="analyzeJob()" class="w-full mt-4 bg-slate-900 text-white font-bold py-4 rounded-2xl hover:bg-black transition-all">Start Security Scan</button>
+            </div>
+
+            <!-- Right: Results -->
+            <div id="results" class="hidden space-y-6">
+                <!-- Verdict Card -->
+                <div id="verdictCard" class="p-8 rounded-[2rem] border-2 shadow-sm">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 id="verdictText" class="text-3xl font-black"></h3>
+                        <p id="scoreText" class="text-4xl font-black text-slate-900"></p>
+                    </div>
+                    <div id="verifyTags" class="flex gap-2"></div>
+                </div>
+
+                <!-- Breakdown -->
+                <div class="bg-white p-8 rounded-3xl border">
+                    <h4 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Score Breakdown</h4>
+                    <div id="breakdownList" class="space-y-2 text-sm font-bold text-slate-700"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function analyzeJob() {
+            const text = document.getElementById('jobInput').value;
+            const res = await fetch('/analyze', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ text })
+            });
+            const data = await res.json();
+
+            // Show results
+            document.getElementById('results').classList.remove('hidden');
+            document.getElementById('verdictText').innerText = data.verdict;
+            document.getElementById('scoreText').innerText = data.score + "%";
+            
+            // Colors
+            const card = document.getElementById('verdictCard');
+            card.className = `p-8 rounded-[2rem] border-2 shadow-sm bg-${data.color}-50 border-${data.color}-100 text-${data.color}-600`;
+
+            // Breakdown
+            const list = document.getElementById('breakdownList');
+            list.innerHTML = data.breakdown.map(item => `
+                <div class="flex justify-between p-3 bg-slate-50 rounded-xl border">
+                    <span>${item.label}</span>
+                    <span class="text-rose-500">${item.pts}</span>
+                </div>
+            `).join('');
+        }
+    </script>
+</body>
+</html>
